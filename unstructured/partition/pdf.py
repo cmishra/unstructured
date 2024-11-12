@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import contextlib
 import copy
 import io
@@ -554,7 +555,7 @@ def process_data_with_model(
     Changed by Chetan so I can use a localization model hosted on a GPU"""
 
     url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
-    resp = requests.post(url, data={"pdf_data": data})
+    resp = requests.post(url, data={"pdf_data": base64.b64encode(data).decode("utf-8")})
     try:
         return pickle.loads(resp.content)
     except Exception as e:
