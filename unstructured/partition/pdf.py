@@ -560,7 +560,7 @@ def process_data_with_model(
         layout_str: str = resp.json()["layout"]
         return pickle.loads(base64.b64decode(layout_str.encode("utf-8")))
     except Exception as e:
-        print(resp.json())
+        print(resp.text[:1000])
         raise e
 
 
