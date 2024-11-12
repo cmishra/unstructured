@@ -540,14 +540,12 @@ def process_file_with_model(
 
     Changed by Chetan so I can use a localization model hosted on a GPU"""
 
-    url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
     with open(filename, "rb") as f:
-        resp = requests.post(url, data={"pdf_data": f.read()})
-    return pickle.loads(resp.content)
+        return process_data_with_model(f.read(), **kwargs)
 
 
 def process_data_with_model(
-    data: str,
+    data: bytes,
     **kwargs,
 ) -> DocumentLayout:
     """Processes pdf file with name filename into a DocumentLayout by using a model identified by
@@ -557,7 +555,11 @@ def process_data_with_model(
 
     url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
     resp = requests.post(url, data={"pdf_data": data})
-    return pickle.loads(resp.content)
+    try:
+        return pickle.loads(resp.content)
+    except Exception as e:
+        print(resp.json())
+        raise e
 
 
 @requires_dependencies("unstructured_inference")
