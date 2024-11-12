@@ -4,12 +4,14 @@ import contextlib
 import copy
 import io
 import os
+import pickle
 import re
 import warnings
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Optional, cast
 
 import numpy as np
+import requests
 import wrapt
 from pdfminer import psparser
 from pdfminer.layout import LTContainer, LTImage, LTItem, LTTextBox
@@ -529,6 +531,35 @@ def check_pdf_hi_res_max_pages_exceeded(
             )
 
 
+def process_file_with_model(
+    filename: str,
+    **kwargs,
+) -> DocumentLayout:
+    """Processes pdf file with name filename into a DocumentLayout by using a model identified by
+    model_name.
+
+    Changed by Chetan so I can use a localization model hosted on a GPU"""
+
+    url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
+    with open(filename, "rb") as f:
+        resp = requests.post(url, data={"pdf_data": f.read()})
+    return pickle.loads(resp.content)
+
+
+def process_data_with_model(
+    data: str,
+    **kwargs,
+) -> DocumentLayout:
+    """Processes pdf file with name filename into a DocumentLayout by using a model identified by
+    model_name.
+
+    Changed by Chetan so I can use a localization model hosted on a GPU"""
+
+    url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
+    resp = requests.post(url, data={"pdf_data": data})
+    return pickle.loads(resp.content)
+
+
 @requires_dependencies("unstructured_inference")
 def _partition_pdf_or_image_local(
     filename: str = "",
@@ -557,11 +588,6 @@ def _partition_pdf_or_image_local(
     **kwargs: Any,
 ) -> list[Element]:
     """Partition using package installed locally"""
-    from unstructured_inference.inference.layout import (
-        process_data_with_model,
-        process_file_with_model,
-    )
-
     from unstructured.partition.pdf_image.ocr import process_data_with_ocr, process_file_with_ocr
     from unstructured.partition.pdf_image.pdfminer_processing import (
         process_data_with_pdfminer,
@@ -1143,7 +1169,6 @@ def document_to_element_list(
                 translation_mapping.extend([(layout_element, el) for el in element])
                 continue
             else:
-
                 element.metadata.links = (
                     get_links_in_element(links, layout_element.bbox) if links else []
                 )
