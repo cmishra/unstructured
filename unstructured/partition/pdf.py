@@ -555,7 +555,7 @@ def process_data_with_model(
     Changed by Chetan so I can use a localization model hosted on a GPU"""
 
     url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
-    resp = requests.post(url, data={"pdf_data": base64.b64encode(data.read()).decode("utf-8")})
+    resp = requests.post(url, json={"pdf_data": base64.b64encode(data.read()).decode("utf-8")})
     try:
         layout_str: str = resp.json()["layout"]
         return pickle.loads(base64.b64decode(layout_str.encode("utf-8")))
