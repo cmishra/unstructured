@@ -542,11 +542,11 @@ def process_file_with_model(
     Changed by Chetan so I can use a localization model hosted on a GPU"""
 
     with open(filename, "rb") as f:
-        return process_data_with_model(f.read(), **kwargs)
+        return process_data_with_model(f, **kwargs)
 
 
 def process_data_with_model(
-    data: bytes,
+    data: io.BufferedReader,
     **kwargs,
 ) -> DocumentLayout:
     """Processes pdf file with name filename into a DocumentLayout by using a model identified by
@@ -555,7 +555,7 @@ def process_data_with_model(
     Changed by Chetan so I can use a localization model hosted on a GPU"""
 
     url = os.environ["UNSTRUCTURED_INFER_LAYOUT_URL"]
-    resp = requests.post(url, data={"pdf_data": base64.b64encode(data).decode("utf-8")})
+    resp = requests.post(url, data={"pdf_data": base64.b64encode(data.read()).decode("utf-8")})
     try:
         return pickle.loads(resp.content)
     except Exception as e:
